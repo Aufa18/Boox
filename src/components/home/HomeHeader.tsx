@@ -1,41 +1,19 @@
 import { COLORS } from "@/constants/theme";
-import { useAuth } from "@/providers/AuthProvider";
-import { getCurrentUser } from "@/services";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { Bell } from "lucide-react-native";
-import { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 
 export default function HomeHeader() {
-  const { user } = useAuth();
-  const [displayName, setDisplayName] = useState<string>("");
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      const { user, error } = await getCurrentUser();
-
-      if (error) {
-        console.error("Gagal mengambil data user:", error.message);
-      } else if (user && user.user_metadata) {
-        // Mengekstrak display_name dari metadata Supabase
-        setDisplayName(user.user_metadata.display_name);
-      }
-    };
-
-    fetchUserProfile();
-  }, []);
+  // Panggil hook yang sudah dibuat
+  const { displayName, avatarUrl } = useUserProfile();
 
   return (
     <View style={styles.header}>
       <View style={styles.userInfo}>
-        <Image
-          source={{
-            uri: `https://ui-avatars.com/api/?name=${displayName}&background=E8C090&color=1C1C1C&size=100`,
-          }}
-          style={styles.avatar}
-        />
+        <Image source={{ uri: avatarUrl }} style={styles.avatar} />
         <View>
           <Text style={styles.welcomeText}>Welcome,</Text>
-          <Text style={styles.userName}>{displayName}</Text>
+          <Text style={styles.userName}>{displayName || "Boox"}</Text>
         </View>
       </View>
       <View style={styles.notificationBtn}>

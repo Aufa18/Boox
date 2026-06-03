@@ -1,89 +1,54 @@
 import { Href, useRouter } from "expo-router";
-import {
-  ChevronRight,
-  LogOut,
-  Settings,
-  ShieldCheck,
-  User,
-} from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import { ChevronRight } from "lucide-react-native";
 import {
   Alert,
   Image,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Import dari arsitektur internal kita
+// Imports internal
+import { ACCOUNT_OPTIONS, AccountOptionType } from "@/constants/profileOptions";
 import { COLORS } from "@/constants/theme";
-import { useAuth } from "@/providers/AuthProvider";
-import { getCurrentUser, signOutUser } from "@/services";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { signOutUser } from "@/services";
 
-type AccountOptionType = {
-  title: string;
-  icon: React.ReactNode;
-  routeName?: string;
-  bgColor: string;
-};
+const ProfileOptionRow = ({
+  item,
+  index,
+  onPress,
+}: {
+  item: AccountOptionType;
+  index: number;
+  onPress: (item: AccountOptionType) => void;
+}) => (
+  <Animated.View
+    entering={FadeInDown.delay(index * 100).springify()}
+    style={styles.listItem}
+  >
+    <TouchableOpacity style={styles.flexRow} onPress={() => onPress(item)}>
+      <View style={[styles.listIcon, { backgroundColor: item.bgColor }]}>
+        {item.icon}
+      </View>
+      <Text style={styles.listTitle}>{item.title}</Text>
+      <ChevronRight size={20} color={COLORS.text} />
+    </TouchableOpacity>
+  </Animated.View>
+);
 
 const ProfileScreen = () => {
-  const { user } = useAuth();
   const router = useRouter();
 
-  // Memaksimalkan data dinamis dari email yang login
-  const [displayName, setDisplayName] = useState<string>("");
-  const userEmail = user?.email || "user@email.com";
-  const avatarUrl = `https://ui-avatars.com/api/?name=${displayName}&background=E8C090&color=1C1C1C&size=200`;
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      const { user, error } = await getCurrentUser();
-
-      if (error) {
-        console.error("Gagal mengambil data user:", error.message);
-      } else if (user && user.user_metadata) {
-        // Mengekstrak display_name dari metadata Supabase
-        setDisplayName(user.user_metadata.display_name);
-      }
-    };
-
-    fetchUserProfile();
-  }, []);
-
-  const accountOptions: AccountOptionType[] = [
-    {
-      title: "Edit Profile",
-      icon: <User size={24} color={COLORS.card} />,
-      routeName: "/(modals)/profileModal",
-      bgColor: COLORS.accent,
-    },
-    {
-      title: "Settings",
-      icon: <Settings size={24} color={COLORS.card} />,
-      bgColor: "#059669",
-    },
-    {
-      title: "Privacy Policy",
-      icon: <ShieldCheck size={24} color={COLORS.card} />,
-      bgColor: COLORS.subtitle,
-    },
-    {
-      title: "Logout",
-      icon: <LogOut size={24} color={COLORS.card} />,
-      bgColor: "#e11d48",
-    },
-  ];
+  // Panggil hook yang sudah dibuat
+  const { displayName, avatarUrl, email } = useUserProfile();
 
   const handleLogout = async () => {
-    // Logika bisnis murni dipanggil dari services, komponen menjadi sangat tipis!
     const { error } = await signOutUser();
-    if (error) {
-      Alert.alert("Error", error.message);
-    }
+    if (error) Alert.alert("Error", error.message);
   };
 
   const showLogoutAlert = () => {
@@ -97,7 +62,6 @@ const ProfileScreen = () => {
     if (item.title === "Logout") {
       showLogoutAlert();
     } else if (item.routeName) {
-      // Menggunakan tipe Href agar Expo Typed Routes tidak protes
       router.push(item.routeName as Href);
     }
   };
@@ -111,37 +75,21 @@ const ProfileScreen = () => {
         </View>
 
         <View style={styles.nameContainer}>
-          <Text style={styles.userName}>{displayName}</Text>
-          <Text style={styles.userEmail}>{userEmail}</Text>
+          <Text style={styles.userName}>{displayName || "Boox"}</Text>
+          <Text style={styles.userEmail}>{email}</Text>
         </View>
       </View>
 
       {/* Account Options List */}
       <View style={styles.accountOptions}>
-        {accountOptions.map((item, index) => {
-          return (
-            <Animated.View
-              key={index.toString()}
-              entering={FadeInDown.delay(index * 100).springify()}
-              style={styles.listItem}
-            >
-              <TouchableOpacity
-                style={styles.flexRow}
-                onPress={() => handlePress(item)}
-              >
-                <View
-                  style={[styles.listIcon, { backgroundColor: item.bgColor }]}
-                >
-                  {item.icon}
-                </View>
-
-                <Text style={styles.listTitle}>{item.title}</Text>
-
-                <ChevronRight size={20} color={COLORS.text} />
-              </TouchableOpacity>
-            </Animated.View>
-          );
-        })}
+        {ACCOUNT_OPTIONS.map((item, index) => (
+          <ProfileOptionRow
+            key={item.title}
+            item={item}
+            index={index}
+            onPress={handlePress}
+          />
+        ))}
       </View>
     </SafeAreaView>
   );

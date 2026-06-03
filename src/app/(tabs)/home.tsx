@@ -6,7 +6,7 @@ import {
   FlatList,
   StyleSheet,
   Text,
-  View,
+  View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -19,6 +19,7 @@ import {
   SearchBar,
 } from "@/components";
 
+import { useConfirmExit } from "@/hooks/useConfirmExit";
 import { useProducts } from "@/hooks/useProducts";
 
 const CATEGORIES = ["All", "Hot Coffee", "Cold Coffee"];
@@ -26,6 +27,7 @@ const CATEGORIES = ["All", "Hot Coffee", "Cold Coffee"];
 export default function HomeScreen() {
   const { products, isLoading, refetch } = useProducts();
   const [activeCategory, setActiveCategory] = useState("All");
+  useConfirmExit();
 
   if (isLoading && products.length === 0) {
     return (
