@@ -6,14 +6,14 @@ import {
   ShieldCheck,
   User,
 } from "lucide-react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Image,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,7 +21,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 // Import dari arsitektur internal kita
 import { COLORS } from "@/constants/theme";
 import { useAuth } from "@/providers/AuthProvider";
-import { signOutUser } from "@/services"; // Memanggil fungsi dari Barrel Export!
+import { getCurrentUser, signOutUser } from "@/services";
 
 type AccountOptionType = {
   title: string;
@@ -35,11 +35,24 @@ const ProfileScreen = () => {
   const router = useRouter();
 
   // Memaksimalkan data dinamis dari email yang login
+  const [displayName, setDisplayName] = useState<string>("");
   const userEmail = user?.email || "user@email.com";
-  // Ambil kata sebelum '@' untuk dijadikan nama (Atau fallback ke 'Aufa')
-  const displayName = user?.email ? user.email.split("@")[0] : "Aufa";
-  // Generate gambar avatar berdasarkan nama pengguna
   const avatarUrl = `https://ui-avatars.com/api/?name=${displayName}&background=E8C090&color=1C1C1C&size=200`;
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const { user, error } = await getCurrentUser();
+
+      if (error) {
+        console.error("Gagal mengambil data user:", error.message);
+      } else if (user && user.user_metadata) {
+        // Mengekstrak display_name dari metadata Supabase
+        setDisplayName(user.user_metadata.display_name);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   const accountOptions: AccountOptionType[] = [
     {

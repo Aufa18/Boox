@@ -4,19 +4,20 @@ import { signUpWithEmail } from "@/services/auth"; // Import service
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function RegisterScreen() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,7 +33,7 @@ export default function RegisterScreen() {
     }
 
     setLoading(true);
-    const { error } = await signUpWithEmail(email, password);
+    const { error } = await signUpWithEmail(email, password, name);
 
     if (error) {
       Alert.alert("Pendaftaran Gagal", error.message);
@@ -58,6 +59,16 @@ export default function RegisterScreen() {
         </View>
 
         <View style={styles.form}>
+          <Text style={styles.label}>Full Name</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your full name"
+            placeholderTextColor={COLORS.subtitle}
+            value={name}
+            onChangeText={setName}
+            autoCapitalize="words"
+          />
+
           <Text style={styles.label}>Email</Text>
           <TextInput
             style={styles.input}
