@@ -43,3 +43,13 @@ example
 /android
 
 .env
+
+# Android Build Artifacts
+android/app/build/
+android/build/
+android/.gradle/
+.gradle/
+.cxx/
+*.apk
+*.aab
+*.keystore

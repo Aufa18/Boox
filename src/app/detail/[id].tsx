@@ -1,5 +1,7 @@
-import { supabase } from "@/lib/supabase";
+import { COLORS } from "@/constants/theme";
+import { getProductById } from "@/services/products";
 import { Product } from "@/types/product";
+import { getOptimizedImageUrl } from "@/utils/cloudinary";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft, Minus, Plus, ShoppingCart } from "lucide-react-native";
 import { useEffect, useState } from "react";
@@ -12,7 +14,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS } from "../../constants/products";
 
 export default function DetailScreen() {
   const { id } = useLocalSearchParams();
@@ -24,52 +25,23 @@ export default function DetailScreen() {
   }, [id]);
 
   const fetchProductDetail = async () => {
-    try {
-      setIsLoading(true);
-
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("id", id) // Cari produk yang ID-nya sama dengan parameter URL
-        .single(); // Beri tahu Supabase bahwa kita hanya butuh 1 baris data
-
-      if (error) {
-        console.error("Gagal mengambil detail:", error.message);
-        return;
-      }
-
-      if (data) {
-        setProduct(data);
-      }
-    } catch (error) {
-      console.error("Terjadi kesalahan:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    if (!id) return;
+    setIsLoading(true);
+    const { data } = await getProductById(id as string);
+    if (data) setProduct(data);
+    setIsLoading(false);
   };
 
-  if (isLoading) {
+  if (isLoading || !product) {
     return (
       <SafeAreaView style={styles.centered}>
         <ActivityIndicator size="large" color={COLORS.accent} />
-        <Text style={{ marginTop: 10 }}>Memuat detail...</Text>
       </SafeAreaView>
     );
   }
 
-  // Tampilkan peringatan jika produk tidak ditemukan di database
-  if (!product) {
-    return (
-      <SafeAreaView style={styles.centered}>
-        <Text>Produk tidak ditemukan.</Text>
-      </SafeAreaView>
-    );
-  }
-
-  // Optimasi gambar Cloudinary (Opsional, tapi sangat disarankan)
-  const optimizedImage = product.image.includes("cloudinary")
-    ? product.image.replace("/upload/", "/upload/w_800,q_auto,f_auto/") // Resolusi lebih besar untuk detail
-    : product.image;
+  // 2. Gunakan fungsi utilitas (cukup berikan lebar 800 tanpa mengisi parameter tinggi)
+  const optimizedImage = getOptimizedImageUrl(product.image, 800);
 
   return (
     <View style={styles.container}>

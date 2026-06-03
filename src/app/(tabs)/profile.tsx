@@ -1,4 +1,11 @@
-import { useRouter } from "expo-router";
+import { Href, useRouter } from "expo-router";
+import {
+  ChevronRight,
+  LogOut,
+  Settings,
+  ShieldCheck,
+  User,
+} from "lucide-react-native";
 import React from "react";
 import {
   Alert,
@@ -8,23 +15,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-// Kita gunakan Lucide Icons agar seragam dengan tab bar Boox Anda
-import {
-  ChevronRight,
-  LogOut,
-  Settings,
-  ShieldCheck,
-  User,
-} from "lucide-react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-// Import sistem Boox
-import { COLORS } from "../../constants/products";
-import { supabase } from "../../lib/supabase";
-import { useAuth } from "../../providers/AuthProvider";
+// Import dari arsitektur internal kita
+import { COLORS } from "@/constants/theme";
+import { useAuth } from "@/providers/AuthProvider";
+import { signOutUser } from "@/services"; // Memanggil fungsi dari Barrel Export!
 
-// Tipe data opsi akun
 type AccountOptionType = {
   title: string;
   icon: React.ReactNode;
@@ -36,12 +34,19 @@ const ProfileScreen = () => {
   const { user } = useAuth();
   const router = useRouter();
 
+  // Memaksimalkan data dinamis dari email yang login
+  const userEmail = user?.email || "user@email.com";
+  // Ambil kata sebelum '@' untuk dijadikan nama (Atau fallback ke 'Aufa')
+  const displayName = user?.email ? user.email.split("@")[0] : "Aufa";
+  // Generate gambar avatar berdasarkan nama pengguna
+  const avatarUrl = `https://ui-avatars.com/api/?name=${displayName}&background=E8C090&color=1C1C1C&size=200`;
+
   const accountOptions: AccountOptionType[] = [
     {
       title: "Edit Profile",
       icon: <User size={24} color={COLORS.card} />,
       routeName: "/(modals)/profileModal",
-      bgColor: COLORS.accent, // Menggunakan warna coklat aplikasi Anda
+      bgColor: COLORS.accent,
     },
     {
       title: "Settings",
@@ -61,23 +66,17 @@ const ProfileScreen = () => {
   ];
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
+    // Logika bisnis murni dipanggil dari services, komponen menjadi sangat tipis!
+    const { error } = await signOutUser();
     if (error) {
       Alert.alert("Error", error.message);
     }
   };
 
   const showLogoutAlert = () => {
-    Alert.alert("Confirm", "Are you sure you want to logout?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "Logout",
-        onPress: () => handleLogout(),
-        style: "destructive",
-      },
+    Alert.alert("Logout", "Apakah Anda yakin ingin keluar?", [
+      { text: "Batal", style: "cancel" },
+      { text: "Ya, Keluar", onPress: handleLogout, style: "destructive" },
     ]);
   };
 
@@ -85,7 +84,8 @@ const ProfileScreen = () => {
     if (item.title === "Logout") {
       showLogoutAlert();
     } else if (item.routeName) {
-      router.push(item.routeName as any);
+      // Menggunakan tipe Href agar Expo Typed Routes tidak protes
+      router.push(item.routeName as Href);
     }
   };
 
@@ -94,20 +94,12 @@ const ProfileScreen = () => {
       {/* User Info Section */}
       <View style={styles.userInfo}>
         <View style={styles.avatarContainer}>
-          {/* Avatar Default karena Supabase belum menyimpan gambar user secara otomatis */}
-          <Image
-            source={{
-              uri: "https://ui-avatars.com/api/?name=Coffee+Lover&background=E8C090&color=1C1C1C&size=200",
-            }}
-            style={styles.avatar}
-          />
+          <Image source={{ uri: avatarUrl }} style={styles.avatar} />
         </View>
 
         <View style={styles.nameContainer}>
-          <Text style={styles.userName}>Aufa</Text>
-          <Text style={styles.userEmail}>
-            {user?.email || "user@email.com"}
-          </Text>
+          <Text style={styles.userName}>{displayName}</Text>
+          <Text style={styles.userEmail}>{userEmail}</Text>
         </View>
       </View>
 
@@ -124,17 +116,14 @@ const ProfileScreen = () => {
                 style={styles.flexRow}
                 onPress={() => handlePress(item)}
               >
-                {/* Icon Wrapper */}
                 <View
                   style={[styles.listIcon, { backgroundColor: item.bgColor }]}
                 >
                   {item.icon}
                 </View>
 
-                {/* Title */}
                 <Text style={styles.listTitle}>{item.title}</Text>
 
-                {/* Caret Icon */}
                 <ChevronRight size={20} color={COLORS.text} />
               </TouchableOpacity>
             </Animated.View>
@@ -153,40 +142,24 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
     paddingHorizontal: 20,
   },
-  userInfo: {
-    marginTop: 30,
-    alignItems: "center",
-    gap: 15,
-  },
-  avatarContainer: {
-    position: "relative",
-    alignSelf: "center",
-  },
+  userInfo: { marginTop: 30, alignItems: "center", gap: 15 },
+  avatarContainer: { position: "relative", alignSelf: "center" },
   avatar: {
     height: 120,
     width: 120,
     borderRadius: 60,
     backgroundColor: COLORS.primary,
   },
-  nameContainer: {
-    alignItems: "center",
-    gap: 4,
-  },
+  nameContainer: { alignItems: "center", gap: 4 },
   userName: {
     fontSize: 24,
     fontWeight: "bold",
     color: COLORS.text,
+    textTransform: "capitalize",
   },
-  userEmail: {
-    fontSize: 15,
-    color: COLORS.subtitle,
-  },
-  accountOptions: {
-    marginTop: 40,
-  },
-  listItem: {
-    marginBottom: 16,
-  },
+  userEmail: { fontSize: 15, color: COLORS.subtitle },
+  accountOptions: { marginTop: 40 },
+  listItem: { marginBottom: 16 },
   flexRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -202,10 +175,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderRadius: 12,
   },
-  listTitle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "600",
-    color: COLORS.text,
-  },
+  listTitle: { flex: 1, fontSize: 16, fontWeight: "600", color: COLORS.text },
 });

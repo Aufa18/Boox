@@ -1,7 +1,8 @@
+import { COLORS } from "@/constants/theme";
+import { Product } from "@/types/product";
+import { getOptimizedImageUrl } from "@/utils/cloudinary";
 import { Heart, ShoppingCart } from "lucide-react-native";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../constants/products";
-import { Product } from "../types/product";
 
 interface ProductCardProps {
   item: Product;
@@ -9,12 +10,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ item, onPress }: ProductCardProps) {
-  const optimizedImage = item.image.includes("cloudinary")
-    ? item.image.replace(
-        "/upload/",
-        "/upload/w_500,h_500,c_fill,q_auto,f_auto/",
-      )
-    : item.image;
+  const optimizedImage = getOptimizedImageUrl(item.image, 500, 500);
 
   return (
     <Pressable style={styles.card} onPress={onPress}>

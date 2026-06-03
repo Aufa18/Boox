@@ -1,3 +1,4 @@
+import { COLORS } from "@/constants/theme";
 import { Tabs } from "expo-router";
 import { Heart, Home, ShoppingCart, UserRound } from "lucide-react-native";
 import {
@@ -8,7 +9,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS } from "../../constants/products";
 
 const TAB_ICON_SIZE = 22;
 

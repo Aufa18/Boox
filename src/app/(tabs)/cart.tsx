@@ -1,6 +1,5 @@
-// File: src/app/(tabs)/cart.tsx (Contoh, terapkan juga ke favorites.tsx dan profile.tsx)
+import { COLORS } from "@/constants/theme";
 import { StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../../constants/products";
 
 export default function CartScreen() {
   return (

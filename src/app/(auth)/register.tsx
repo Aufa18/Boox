@@ -1,38 +1,46 @@
+// File: src/app/(auth)/register.tsx
 import { COLORS } from "@/constants/theme";
-import { signInWithEmail } from "@/services/auth"; // Import service
+import { signUpWithEmail } from "@/services/auth"; // Import service
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
+  const handleRegister = async () => {
     if (!email || !password) {
-      Alert.alert("Perhatian", "Email dan password tidak boleh kosong.");
+      Alert.alert("Perhatian", "Mohon lengkapi email dan password.");
+      return;
+    }
+    if (password.length < 6) {
+      Alert.alert("Perhatian", "Password harus minimal 6 karakter.");
       return;
     }
 
     setLoading(true);
-    const { error } = await signInWithEmail(email, password);
+    const { error } = await signUpWithEmail(email, password);
 
     if (error) {
-      Alert.alert("Login Gagal", error.message);
+      Alert.alert("Pendaftaran Gagal", error.message);
+    } else {
+      Alert.alert("Berhasil!", "Akun Anda telah dibuat. Silakan login.", [
+        { text: "OK", onPress: () => router.replace("/(auth)/login") },
+      ]);
     }
-    // Jika sukses, satpam di _layout.tsx akan otomatis melempar ke Home!
     setLoading(false);
   };
 
@@ -43,9 +51,9 @@ export default function LoginScreen() {
         style={styles.content}
       >
         <View style={styles.header}>
-          <Text style={styles.title}>Welcome Back</Text>
+          <Text style={styles.title}>Join Boox</Text>
           <Text style={styles.subtitle}>
-            Brew your next great idea with Boox.
+            Start your premium coffee journey today.
           </Text>
         </View>
 
@@ -53,7 +61,7 @@ export default function LoginScreen() {
           <Text style={styles.label}>Email</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter your email"
+            placeholder="Enter a valid email"
             placeholderTextColor={COLORS.subtitle}
             value={email}
             onChangeText={setEmail}
@@ -64,7 +72,7 @@ export default function LoginScreen() {
           <Text style={styles.label}>Password</Text>
           <TextInput
             style={styles.input}
-            placeholder="Enter your password"
+            placeholder="Create a strong password"
             placeholderTextColor={COLORS.subtitle}
             value={password}
             onChangeText={setPassword}
@@ -73,21 +81,21 @@ export default function LoginScreen() {
 
           <TouchableOpacity
             style={styles.primaryButton}
-            onPress={handleLogin}
+            onPress={handleRegister}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color={COLORS.card} />
             ) : (
-              <Text style={styles.buttonText}>Sign In</Text>
+              <Text style={styles.buttonText}>Create Account</Text>
             )}
           </TouchableOpacity>
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
-          <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
-            <Text style={styles.footerLink}>Sign Up</Text>
+          <Text style={styles.footerText}>Already have an account? </Text>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={styles.footerLink}>Sign In</Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -96,6 +104,7 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
+  // Desain konsisten persis dengan layar Login
   container: { flex: 1, backgroundColor: COLORS.background },
   content: { flex: 1, padding: 24, justifyContent: "center" },
   header: { marginBottom: 40 },
@@ -125,13 +134,13 @@ const styles = StyleSheet.create({
     borderColor: "rgba(0,0,0,0.05)",
   },
   primaryButton: {
-    backgroundColor: COLORS.accent,
+    backgroundColor: COLORS.text,
     height: 56,
     borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 12,
-  },
+  }, // Warna button beda sedikit (Dark) untuk pembeda visual
   buttonText: { color: COLORS.card, fontSize: 16, fontWeight: "bold" },
   footer: { flexDirection: "row", justifyContent: "center", marginTop: 32 },
   footerText: { color: COLORS.subtitle, fontSize: 14 },
