@@ -1,27 +1,16 @@
-import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { COLORS } from "../constants/products";
 
 export default function OnboardingScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <Text style={styles.brand}>Boox</Text>
       <View style={styles.imageContainer}>
         <Image
-          source={{
-            uri: "https://images.unsplash.com/photo-1559525839-b184a4d698c7?auto=format&fit=crop&w=800&q=80",
-          }}
+          source={require("../../assets/images/welcome.png")}
           style={styles.heroImage}
-        />
-        <LinearGradient
-          // Mulai dari transparan (atas) menuju warna background (bawah)
-          colors={["transparent", COLORS.background]}
-          style={{
-            position: "absolute",
-            bottom: 0,
-            width: "100%",
-            height: 120,
-          }}
         />
       </View>
 
@@ -32,11 +21,14 @@ export default function OnboardingScreen() {
           simplicity.
         </Text>
 
-        <Pressable style={styles.button} onPress={() => router.push("/home")}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => router.push("/(tabs)/home")}
+        >
           <Text style={styles.buttonText}>Get Started</Text>
-        </Pressable>
+        </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -45,15 +37,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  brand: {
+    color: "brown",
+    paddingHorizontal: 30,
+    fontSize: 48,
+    fontWeight: "900",
+    lineHeight: 52,
+  },
   imageContainer: {
     flex: 1.5,
     justifyContent: "center",
     alignItems: "center",
+    // paddingTop: 40,
   },
   heroImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
+    width: "110%",
+    height: "110%",
+    resizeMode: "contain",
   },
   contentContainer: {
     flex: 1,

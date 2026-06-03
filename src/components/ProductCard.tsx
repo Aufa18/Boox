@@ -9,15 +9,24 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ item, onPress }: ProductCardProps) {
+  const optimizedImage = item.image.includes("cloudinary")
+    ? item.image.replace(
+        "/upload/",
+        "/upload/w_500,h_500,c_fill,q_auto,f_auto/",
+      )
+    : item.image;
+
   return (
     <Pressable style={styles.card} onPress={onPress}>
-      <Image source={{ uri: item.image }} style={styles.image} />
+      <Image source={{ uri: optimizedImage }} style={styles.image} />
       <View style={styles.infoContainer}>
         <Text style={styles.name} numberOfLines={1}>
           {item.name}
         </Text>
         <View style={styles.bottomRow}>
-          <Text style={styles.price}>${item.price.toFixed(2)}</Text>
+          <Text style={styles.price}>
+            Rp {item.price.toLocaleString("id-ID")}
+          </Text>
           <View style={styles.actions}>
             <Heart size={18} color={COLORS.text} style={styles.icon} />
             <View style={styles.cartBtn}>

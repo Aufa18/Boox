@@ -1,12 +1,75 @@
+import { supabase } from "@/lib/supabase";
+import { Product } from "@/types/product";
 import { router, useLocalSearchParams } from "expo-router";
 import { ChevronLeft, Minus, Plus, ShoppingCart } from "lucide-react-native";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { COLORS, products } from "../../constants/products";
+import { COLORS } from "../../constants/products";
 
 export default function DetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const product = products.find((p) => p.id === id) || products[0];
+  const { id } = useLocalSearchParams();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProductDetail();
+  }, [id]);
+
+  const fetchProductDetail = async () => {
+    try {
+      setIsLoading(true);
+
+      const { data, error } = await supabase
+        .from("products")
+        .select("*")
+        .eq("id", id) // Cari produk yang ID-nya sama dengan parameter URL
+        .single(); // Beri tahu Supabase bahwa kita hanya butuh 1 baris data
+
+      if (error) {
+        console.error("Gagal mengambil detail:", error.message);
+        return;
+      }
+
+      if (data) {
+        setProduct(data);
+      }
+    } catch (error) {
+      console.error("Terjadi kesalahan:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.centered}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+        <Text style={{ marginTop: 10 }}>Memuat detail...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Tampilkan peringatan jika produk tidak ditemukan di database
+  if (!product) {
+    return (
+      <SafeAreaView style={styles.centered}>
+        <Text>Produk tidak ditemukan.</Text>
+      </SafeAreaView>
+    );
+  }
+
+  // Optimasi gambar Cloudinary (Opsional, tapi sangat disarankan)
+  const optimizedImage = product.image.includes("cloudinary")
+    ? product.image.replace("/upload/", "/upload/w_800,q_auto,f_auto/") // Resolusi lebih besar untuk detail
+    : product.image;
 
   return (
     <View style={styles.container}>
@@ -22,7 +85,7 @@ export default function DetailScreen() {
         </View>
 
         <View style={styles.imageWrapper}>
-          <Image source={{ uri: product.image }} style={styles.productImage} />
+          <Image source={{ uri: optimizedImage }} style={styles.productImage} />
         </View>
       </SafeAreaView>
 
@@ -35,7 +98,9 @@ export default function DetailScreen() {
         </View>
 
         <View style={styles.priceRow}>
-          <Text style={styles.price}>${product.price.toFixed(2)}</Text>
+          <Text style={styles.price}>
+            Rp {product.price.toLocaleString("id-ID")}
+          </Text>
           <View style={styles.quantitySelector}>
             <Pressable style={styles.qtyBtn}>
               <Minus size={16} color={COLORS.text} />
@@ -58,6 +123,12 @@ export default function DetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: COLORS.background,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: COLORS.background,
   },
   topSection: {
